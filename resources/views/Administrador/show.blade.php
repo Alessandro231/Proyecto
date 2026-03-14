@@ -23,7 +23,8 @@
         <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
                 <strong>Avatar</strong>
-                {{ $pokemon->imagen }}
+                <br>
+                <img src="/imagen/pokemon/{{ $pokemon->imagen }}" class="img-fluid rounded" width="200" alt="{{ $pokemon->nombre }}">
             </div>
         </div>
 

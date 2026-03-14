@@ -36,7 +36,9 @@
         <tr>
             <td>{{ $pokemon->id }}</td>
             <td>{{ $pokemon->nombre }}</td>
-            <td>{{ $pokemon->imagen }}</td>
+            <td>
+                <img src="/imagen/pokemon/{{ $pokemon->imagen }}" class="img-fluid rounded" width="100" alt="{{ $pokemon->nombre }}">
+            </td>
 
             <td>
                 <form action="{{ route('pokemon.destroy',$pokemon->id) }}" method="POST">
@@ -73,139 +75,6 @@
             </form>
             </td>
           </tr>
-          <tr>
-            <th scope="row">Caterpie</th>
-            <td>
-                <img src="imagen/pokemon/cater.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-          <tr>
-            <th scope="row">Venusaur</th>
-            <td>
-                <img src="imagen/pokemon/venu.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-          <tr>
-            <th scope="row">Sandslash</th>
-            <td>
-                <img src="imagen/pokemon/sand.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-
-          <tr>
-            <th scope="row">Nidoran</th>
-            <td>
-                <img src="imagen/pokemon/nido.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-
-          <tr>
-            <th scope="row">Paras</th>
-            <td>
-                <img src="imagen/pokemon/para.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-
-          <tr>
-            <th scope="row">Magmar</th>
-            <td>
-                <img src="imagen/pokemon/mag.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-
-          <tr>
-            <th scope="row">Arbok</th>
-            <td>
-                <img src="imagen/pokemon/ar.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-
-          <tr>
-            <th scope="row">Piplup</th>
-            <td>
-                <img src="imagen/pokemon/pip.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-
-          <tr>
-            <th scope="row">Misdreavus</th>
-            <td>
-                <img src="imagen/pokemon/mis.png" class="img-fluid rounded" width="100" alt="">
-            </td>
-            <form>
-                <td>
-                <a class="btn btn-info" href="#">Mostrar</a>
-                <a class="btn btn-primary" href="#">Editar</a>
-
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-            </td>
-          </tr>
-
         </tbody>
       </table>
 

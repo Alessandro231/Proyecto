@@ -47,18 +47,16 @@ class pokemonController extends Controller
             'debilidad' => 'required',
         ]);
 
-        //$imagen = $request -> file('imagen');
-       // $nombre = time().'.'.$imagen->getClientOriginalExtension();
-        //$destino = storage_path.'app\imagen\pokemon/'.;
-       // $request->imagen->move($destino, $nombre);
+        $input = $request->all();
 
-        $imagenes = $request->file('imagen')->store('public/images/pokemon');
-        $url = Storage::url($imagenes);
-        //pokemon::create([
-            //'url'=>$url
-        //]);
+        if ($image = $request->file('imagen')) {
+            $destinationPath = public_path('imagen/pokemon/');
+            $profileImage = date('YmdHis') . "." . $image->getClientOriginalExtension();
+            $image->move($destinationPath, $profileImage);
+            $input['imagen'] = "$profileImage";
+        }
 
-        pokemon::create($request->all());
+        pokemon::create($input);
 
         return redirect()->route('pokemon.index')->with('success','Pokemon creado satisfactoriamente.');
     }
@@ -98,19 +96,24 @@ class pokemonController extends Controller
     {
         $request->validate([
             'nombre' => 'required',
-            'imagen' => 'required|image|mimes:png,jpg,jpeg,gif,svg|max:2048',
             'tipo' => 'required',
             'categoria' => 'required',
             'habilidad' => 'required',
             'debilidad' => 'required',
         ]);
 
-        $imagen = $request -> file('image');
-        $nombre = time().'.'.$imagen->getClientOriginalExtension();
-        $destino = public_path('storage/pokemon');
-        $request->imagen->move($destino, $nombre);
+        $input = $request->all();
 
-        $pokemon->update($request->all());
+        if ($image = $request->file('imagen')) {
+            $destinationPath = public_path('imagen/pokemon/');
+            $profileImage = date('YmdHis') . "." . $image->getClientOriginalExtension();
+            $image->move($destinationPath, $profileImage);
+            $input['imagen'] = "$profileImage";
+        }else{
+            unset($input['imagen']);
+        }
+
+        $pokemon->update($input);
 
         return redirect()->route('pokemon.index')->with('success','Pokemon actualizado correctamente');
     }
@@ -127,5 +130,48 @@ class pokemonController extends Controller
 
          return redirect()->route('pokemon.index')
                          ->with('success','pokemon borrado correctamente');
+    }
+
+    public function search($name)
+    {
+        $pokemon = pokemon::where('nombre', 'LIKE', $name)->first();
+
+        if ($pokemon) {
+            return response()->json([
+                'found' => true,
+                'data' => $pokemon
+            ]);
+        }
+
+        return response()->json([
+            'found' => false
+        ], 404);
+    }
+
+    public function saveFromApi(Request $request)
+    {
+        $name = $request->input('nombre');
+        $imageUrl = $request->input('imagen_url');
+        
+        // Descargar la imagen
+        $imageContent = file_get_contents($imageUrl);
+        $filename = time() . '_' . $name . '.png';
+        $destinationPath = public_path('imagen/pokemon/' . $filename);
+        file_put_contents($destinationPath, $imageContent);
+
+        $pokemon = pokemon::create([
+            'nombre' => $name,
+            'imagen' => $filename,
+            'tipo' => $request->input('tipo'),
+            'categoria' => $request->input('categoria', 'Oficial'),
+            'habilidad' => $request->input('habilidad'),
+            'debilidad' => $request->input('debilidad', 'Desconocida'),
+            'url' => $request->input('url', 'https://pokeapi.co/api/v2/pokemon/' . strtolower($name)),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $pokemon
+        ]);
     }
 }

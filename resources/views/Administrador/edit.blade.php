@@ -36,8 +36,12 @@
 
             <div class="col-xs-12 col-sm-12 col-md-12">
                 <div class="form-group">
-                    <strong>Avatar</strong>
-                    <input type="file" name="imagen" id="imagen" value="{{ $pokemon->imagen }}" class="form-control" placeholder="Title">
+                    <strong>Avatar actual</strong>
+                    <br>
+                    <img src="/imagen/pokemon/{{ $pokemon->imagen }}" class="img-fluid rounded" width="100" alt="{{ $pokemon->nombre }}">
+                    <br><br>
+                    <strong>Cambiar Avatar</strong>
+                    <input type="file" name="imagen" id="imagen" class="form-control">
                 </div>
             </div>
 

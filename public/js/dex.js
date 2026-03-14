@@ -6,6 +6,8 @@ const pokeId = document.querySelector('[data-poke-id]');
 const pokeTypes = document.querySelector('[data-poke-types]');
 const pokeStats = document.querySelector('[data-poke-stats]');
 
+let currentPokemonRecord = null; // Para guardar temporalmente el pokemon buscado
+
 const typeColors = {
     electric: '#FFEA70',
     normal: '#B09398',
@@ -27,13 +29,44 @@ const typeColors = {
 };
 
 
-const searchPokemon = event => {
+const searchPokemon = async event => {
     event.preventDefault();
     const { value } = event.target.pokemon;
-    fetch(`https://pokeapi.co/api/v2/pokemon/${value.toLowerCase()}`)
+    const pokemonName = value.toLowerCase();
+
+    renderLoading();
+    currentPokemonRecord = null;
+
+    try {
+        // 1. Intentar buscar en NUESTRA base de datos local
+        const localResponse = await fetch(`/api/pokemon/search/${pokemonName}`);
+        
+        if (localResponse.ok) {
+            const localResult = await localResponse.json();
+            renderLocalPokemonData(localResult.data);
+            return;
+        }
+    } catch (err) {
+        console.log("Error buscando localmente...");
+    }
+
+    // 2. Si no está localmente, intentar en la API externa oficial
+    fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
         .then(data => data.json())
-        .then(response => renderPokemonData(response))
-        .catch(err => renderNotFound())
+        .then(response => {
+            currentPokemonRecord = response; // Guardamos para poder salvarlo luego
+            renderPokemonData(response);
+        })
+        .catch(err => renderNotFound());
+}
+
+const renderLoading = () => {
+    pokeName.textContent = 'Buscando...';
+    pokeImg.setAttribute('src', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJqZndqZndqZndqZndqZndqZndqZndqZndqZndqZndqZndqZndqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7bu3XilJ5BOiSGic/giphy.gif');
+    pokeImg.style.background = '#fff';
+    pokeTypes.innerHTML = '';
+    pokeStats.innerHTML = '';
+    pokeId.textContent = '';
 }
 
 const renderPokemonData = data => {
@@ -42,15 +75,75 @@ const renderPokemonData = data => {
 
     pokeName.textContent = data.name;
     pokeImg.setAttribute('src', sprite);
-    pokeId.textContent = `Nº ${data.id}`;
+    pokeId.innerHTML = `Nº ${data.id} (Oficial) <br><br> <button class="btn btn-success" onclick="saveToDatabase()">¡Guardar en mi BD!</button>`;
     setCardColor(types);
     renderPokemonTypes(types);
     renderPokemonStats(stats);
 }
 
+const renderLocalPokemonData = data => {
+    const sprite = `/imagen/pokemon/${data.imagen}`;
+    const types = [{ type: { name: data.tipo.toLowerCase() } }];
+    const stats = [
+        { stat: { name: 'Categoría' }, base_stat: data.categoria },
+        { stat: { name: 'Habilidad' }, base_stat: data.habilidad },
+        { stat: { name: 'Debilidad' }, base_stat: data.debilidad }
+    ];
+
+    pokeName.textContent = data.nombre + " (Tuyo!)";
+    pokeImg.setAttribute('src', sprite);
+    pokeId.textContent = `Nº ${data.id} (Local)`;
+    setCardColor(types);
+    renderPokemonTypes(types);
+    renderLocalStats(stats);
+}
+
+// Función para enviar los datos al backend y guardar
+const saveToDatabase = async () => {
+    if (!currentPokemonRecord) return;
+
+    const btn = document.querySelector('.btn-success');
+    btn.textContent = 'Guardando...';
+    btn.disabled = true;
+
+    const dataToSend = {
+        nombre: currentPokemonRecord.name,
+        imagen_url: currentPokemonRecord.sprites.front_default,
+        tipo: currentPokemonRecord.types.map(t => t.type.name).join(', '),
+        habilidad: currentPokemonRecord.abilities.map(a => a.ability.name).join(', '),
+        categoria: 'Oficial API',
+        debilidad: 'Consultar API',
+        url: `https://pokeapi.co/api/v2/pokemon/${currentPokemonRecord.id}`
+    };
+
+    try {
+        const response = await fetch('/api/pokemon/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(dataToSend)
+        });
+
+        if (response.ok) {
+            btn.textContent = '✅ ¡Guardado!';
+            setTimeout(() => {
+                alert('¡Pokémon guardado con éxito en tu base de datos!');
+            }, 500);
+        } else {
+            btn.textContent = '❌ Error al guardar';
+            btn.disabled = false;
+        }
+    } catch (err) {
+        console.error(err);
+        btn.textContent = '❌ Error';
+        btn.disabled = false;
+    }
+}
 
 const setCardColor = types => {
-    const colorOne = typeColors[types[0].type.name];
+    const colorOne = typeColors[types[0].type.name] || typeColors.default;
     const colorTwo = types[1] ? typeColors[types[1].type.name] : typeColors.default;
     pokeImg.style.background =  `radial-gradient(${colorTwo} 33%, ${colorOne} 33%)`;
     pokeImg.style.backgroundSize = ' 5px 5px';
@@ -60,7 +153,7 @@ const renderPokemonTypes = types => {
     pokeTypes.innerHTML = '';
     types.forEach(type => {
         const typeTextElement = document.createElement("div");
-        typeTextElement.style.color = typeColors[type.type.name];
+        typeTextElement.style.color = typeColors[type.type.name] || typeColors.default;
         typeTextElement.textContent = type.type.name;
         pokeTypes.appendChild(typeTextElement);
     });
@@ -80,9 +173,26 @@ const renderPokemonStats = stats => {
     });
 }
 
+const renderLocalStats = stats => {
+    pokeStats.innerHTML = '';
+    stats.forEach(stat => {
+        const statElement = document.createElement("div");
+        statElement.style.display = 'flex';
+        statElement.style.justifyContent = 'space-between';
+        statElement.style.width = '100%';
+        const name = document.createElement("div");
+        name.textContent = stat.stat.name;
+        const value = document.createElement("div");
+        value.textContent = stat.base_stat;
+        statElement.appendChild(name);
+        statElement.appendChild(value);
+        pokeStats.appendChild(statElement);
+    });
+}
+
 const renderNotFound = () => {
     pokeName.textContent = 'No encontrado';
-    pokeImg.setAttribute('src', 'poke-shadow.png');
+    pokeImg.setAttribute('src', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJqZndqZndqZndqZndqZndqZndqZndqZndqZndqZndqZndqZndqJmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/12Bpme5pTzGmg8/giphy.gif');
     pokeImg.style.background =  '#fff';
     pokeTypes.innerHTML = '';
     pokeStats.innerHTML = '';
